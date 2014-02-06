@@ -1,0 +1,28 @@
+doctype html
+html
+	head
+		meta(charset="utf-8")
+		meta(name="viewport", content="width=device-width initial-scale=1.0")
+		meta(name="description", content="Web application running on Express in a Pi to control an Arduino")
+		title= title
+		link(rel='stylesheet', href='/stylesheets/base-min.css')
+		link(rel='stylesheet', href='/stylesheets/pure-min.css')
+		link(rel='stylesheet', href='/stylesheets/style.css')
+	body
+		div#layout
+			// Menu toggle
+			a(href="#menu" id="menuLink" class="menu-link")
+				// Icon
+				span
+			nav#menu
+				include menu
+			section#main
+				section.header
+					block header
+				section.content
+					block content
+
+		// RUN SCRIPTS AT THE END
+		script(src='/javascripts/yui.js')
+		script(type='text/javascript', src='http://code.jquery.com/jquery-2.1.0.min.js')
+		block scripts

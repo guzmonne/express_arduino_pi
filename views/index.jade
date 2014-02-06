@@ -1,0 +1,28 @@
+extends layout
+block header
+	h1=title
+	h2 Control an Arduino with a Raspberry Pi powered by Node.JS
+block content
+	h2.content-subhead Description
+	p 
+		| The idea behind this project is to be able to control an Arduino through a Node.JS
+		| application running on a Raspberry Pi. 
+	p
+		| For now the Raspberry Pi can talk with the Arduino using a USB serial connection. In the 
+		| future other means of communication between the devices can be added. Messeges are exchanged
+		| between them resulting in different actions. 
+	p
+		| Node.JS is a good choice to power the project since is very simple to combine the device 
+		| communication, and a web server. The asynchronous nature of NodeJS also aliviates the 
+		| processing on the Raspberry Pi. 
+	h2.content-subhead Project Images
+	div.pure-g
+		div.pure-u-1-4
+			img(class="pure-img-responsive", src="https://lh6.googleusercontent.com/-m88dpWcWBI4/AAAAAAAAAAI/AAAAAAAAAKI/OfF2OkZjTqw/photo.jpg" alt="Raspberry Pi logo")
+		div.pure-u-1-4
+			img(class="pure-img-responsive", src="http://upload.wikimedia.org/wikipedia/commons/3/3d/RaspberryPi.jpg" alt="Raspberry Pi")
+		div.pure-u-1-4
+			img(class="pure-img-responsive", src="http://arduino.cc/en/uploads/Main/ArduinoUno_r2_front450px.jpg" alt="Arduino Uno")
+		div.pure-u-1-4
+			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
+

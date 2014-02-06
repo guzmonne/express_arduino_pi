@@ -1,0 +1,38 @@
+extends layout
+block header
+	h1=title
+	h2 Change the color of a multicolor LED
+block content
+	h2.content-subhead Information
+	p
+		| Here we can change the color of a multicolor LED. This LED is actually a combination of
+		| three smaller LEDs, one red, one green, and one blue. Changing the brightness of this three
+		| LEDs we can generate different colors. In total we can generate 768 colors, since each of
+		| the small LEDs have 255 levels of intensity (we are considering 'black' when the three 
+		|	LEDs are off). 
+	p
+		| On the page we only set the color from the scale. On update an AJAX request is generated
+		| The server will then received this new number, send it to the Arduino Board by serial USB
+		| connection. Next, the arduino will interpret this new value and change the LED color 
+		| accordingly. If no error is produced then a success (200) response is sent back to the 
+		| client. Else, an error (400) response is sent back.
+	p
+		| Everytime we move the slider we trigger an AJAX POST request to the Raspberry who then 
+		| tells the arduino to change the LED color. You can compare the color shown in the page
+		| with the one the LED has.
+	h2.content-subhead Color Form
+	div(class="info message" id="alert")
+	form(class="pure-form pure-form-aligned")
+		fieldset
+			div.pure-control-group
+				label(for="color") Color
+				input(id="color" type="text" placeholder="Color" name="color" readonly=true)
+			div.pure-control-group
+				label(for="slider")
+				input(type="range" min="0" max="768" name="slider")
+				span(id="color_value" class="color_value")
+			//div.pure-controls
+				button(type="submit" class="pure-button pure-button-primary") Change Color
+
+block scripts
+	script(src='/javascripts/colorLed.js')
