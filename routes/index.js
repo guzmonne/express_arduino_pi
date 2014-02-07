@@ -1,4 +1,6 @@
-var serialPort = require('../libs/serial').serialPort;
+var serial       = require('../libs/serial');
+var serialPort   = serial.serialPort;
+var serialShield = serial.serialShield;
 
 exports.index = function(req, res){
   res.render('index', { title: 'Express Arduino Pi', menu: 'home' });

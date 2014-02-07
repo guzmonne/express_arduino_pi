@@ -4,13 +4,20 @@ var randomInt;
 
 var serialPort = new SerialPort("/dev/ttyUSB0", {
 	baudrate: 9600,
-	parser: serialport.parsers.readline('\n')
+	parser  : serialport.parsers.readline('\n')
+});
+
+var serialShield = new SerialPort('/dev/ttyACM0', {
+	baudrate: 9600,
+	parser  : serialport.parsers.readline('\n')
 });
 
 exports.serialPort = serialPort;
+exports.serialShield = serialShield;
+
 
 serialPort.on("open", function(){
-	console.log("Connection Open");
+	console.log("Connection to RedBoard Open");
 
 	// Subscribe to events
 	// ===================
@@ -32,10 +39,30 @@ serialPort.on("open", function(){
 	}); 
 });
 
+serialShield.on("open", function(){
+	console.log("Connection to ShieldBoard Open");
+
+	// Subscribe to events
+	// ===================
+	// Receive data
+	// ------------
+	serialShield.on("data", function(data){
+		console.log("Data Shield: " + data);
+		var sData = data.split(":");
+		var sLength = sData.length;
+		sData[sLength - 1] = sData[sLength - 1].split("\r")[0];
+		console.log(sData);
+		if (sData[1] === '0'){
+			console.log("Button OFF");
+		} else {
+			console.log("Button ON");
+		}
+	});
+});
+
 function inBrackets(data){
 	return '{' + data + '}';
-}
-
+};
 
 function sendRandomNumber() {
 	setInterval(function(){
