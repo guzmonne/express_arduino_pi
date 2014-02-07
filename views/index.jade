@@ -27,7 +27,16 @@ extends layout
 //- 			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
 // TEMPLATES
 block scripts
-	script(id="color_led", type="text/template")
+	script(id="menu-template", type="text/template")
+		div(class="pure-menu pure-menu-open")
+			a(class="pure-menu-heading", href="#home") EAPi
+			ul
+				li(class="menu-item-divided")
+					a(href="#home") Home
+				li.pure-menu-selected
+					a(href="#color_led") Color LED
+
+	script(id="color_led-template", type="text/template")
 		section.header
 			h1=title
 			h2 Change the color of a multicolor LED
@@ -61,7 +70,7 @@ block scripts
 						input(type="range" min="0" max="768" name="slider")
 						span(id="color_value" class="color_value")
 
-	script(id="home", type="text/template")
+	script(id="home-template", type="text/template")
 		section.header
 			h1=title
 			h2 Control an Arduino with a Raspberry Pi powered by Node.JS

@@ -5,15 +5,19 @@ window.App = {
 	Views      : {},
 
 	vent: _.extend({}, Backbone.Events),
+	mainRouter: null,
+	menuView  : null,
 
   start: function() {
-    new App.Routers.MainRouter();
+		this.mainRouter = new App.Routers.MainRouter();
+		this.menuView   = new App.Views.Menu();
+		$('#menu').html(this.menuView.render().el);
     return Backbone.history.start();
   },
 };
 
 App.Views.ColorLed = Backbone.View.extend({
-	template: _.template($('#color_led').html()),
+	template: _.template($('#color_led-template').html()),
 
 	initialize: function(){
 		this.sendChange = _.throttle(this.sendChange, 500);
@@ -79,8 +83,27 @@ App.Views.ColorLed = Backbone.View.extend({
 	},
 });
 
+App.Views.Menu = Backbone.View.extend({
+	template: _.template($('#menu-template').html()),
+
+	initialize: function(){
+		this.listenTo(App.mainRouter, 'route', this.selectButton);
+	},
+
+	render: function(){
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	selectButton: function(){
+		var url = Backbone.history.fragment;
+		this.$('li').removeClass('pure-menu-selected');
+		this.$('li a[href=#'+ url +']').parent().addClass('pure-menu-selected');
+	},
+});
+
 App.Views.Home = Backbone.View.extend({
-	template: _.template($('#home').html()),
+	template: _.template($('#home-template').html()),
 
 	render: function(){
 		$(this.el).html(this.template());
