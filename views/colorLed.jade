@@ -7,7 +7,7 @@ block content
 	p
 		| Here we can change the color of a multicolor LED. This LED is actually a combination of
 		| three smaller LEDs, one red, one green, and one blue. Changing the brightness of this three
-		| LEDs we can generate different colors. In total we can generate 768 colors, since each of
+		| LEDs we can generate a total of 768 colors, since each of
 		| the small LEDs have 255 levels of intensity (we are considering 'black' when the three 
 		|	LEDs are off). 
 	p
@@ -31,8 +31,6 @@ block content
 				label(for="slider")
 				input(type="range" min="0" max="768" name="slider")
 				span(id="color_value" class="color_value")
-			//div.pure-controls
-				button(type="submit" class="pure-button pure-button-primary") Change Color
 
 block scripts
 	script(src='/javascripts/colorLed.js')

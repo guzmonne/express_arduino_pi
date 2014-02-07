@@ -1,28 +1,90 @@
 extends layout
-block header
-	h1=title
-	h2 Control an Arduino with a Raspberry Pi powered by Node.JS
-block content
-	h2.content-subhead Description
-	p 
-		| The idea behind this project is to be able to control an Arduino through a Node.JS
-		| application running on a Raspberry Pi. 
-	p
-		| For now the Raspberry Pi can talk with the Arduino using a USB serial connection. In the 
-		| future other means of communication between the devices can be added. Messeges are exchanged
-		| between them resulting in different actions. 
-	p
-		| Node.JS is a good choice to power the project since is very simple to combine the device 
-		| communication, and a web server. The asynchronous nature of NodeJS also aliviates the 
-		| processing on the Raspberry Pi. 
-	h2.content-subhead Project Images
-	div.pure-g
-		div.pure-u-1-4
-			img(class="pure-img-responsive", src="https://lh6.googleusercontent.com/-m88dpWcWBI4/AAAAAAAAAAI/AAAAAAAAAKI/OfF2OkZjTqw/photo.jpg" alt="Raspberry Pi logo")
-		div.pure-u-1-4
-			img(class="pure-img-responsive", src="http://upload.wikimedia.org/wikipedia/commons/3/3d/RaspberryPi.jpg" alt="Raspberry Pi")
-		div.pure-u-1-4
-			img(class="pure-img-responsive", src="http://arduino.cc/en/uploads/Main/ArduinoUno_r2_front450px.jpg" alt="Arduino Uno")
-		div.pure-u-1-4
-			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
+//- block header
+//- 	h1=title
+//- 	h2 Control an Arduino with a Raspberry Pi powered by Node.JS
+//- block content
+//- 	h2.content-subhead Description
+//- 	p 
+//- 		| The idea behind this project is to be able to control an Arduino through a Node.JS
+//- 		| application running on a Raspberry Pi. 
+//- 	p
+//- 		| For now the Raspberry Pi can talk with the Arduino using a USB serial connection. In the 
+//- 		| future other means of communication between the devices can be added. Messeges are exchanged
+//- 		| between them resulting in different actions. 
+//- 	p
+//- 		| Node.JS is a good choice to power the project since is very simple to combine the device 
+//- 		| communication, and a web server. The asynchronous nature of NodeJS also aliviates the 
+//- 		| processing on the Raspberry Pi. 
+//- 	h2.content-subhead Project Images
+//- 	div.pure-g
+//- 		div.pure-u-1-4
+//- 			img(class="pure-img-responsive", src="https://lh6.googleusercontent.com/-m88dpWcWBI4/AAAAAAAAAAI/AAAAAAAAAKI/OfF2OkZjTqw/photo.jpg" alt="Raspberry Pi logo")
+//- 		div.pure-u-1-4
+//- 			img(class="pure-img-responsive", src="http://upload.wikimedia.org/wikipedia/commons/3/3d/RaspberryPi.jpg" alt="Raspberry Pi")
+//- 		div.pure-u-1-4
+//- 			img(class="pure-img-responsive", src="http://arduino.cc/en/uploads/Main/ArduinoUno_r2_front450px.jpg" alt="Arduino Uno")
+//- 		div.pure-u-1-4
+//- 			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
+// TEMPLATES
+block scripts
+	script(id="color_led", type="text/template")
+		section.header
+			h1=title
+			h2 Change the color of a multicolor LED
+		section.content
+			h2.content-subhead Information
+			p
+				| Here we can change the color of a multicolor LED. This LED is actually a combination of
+				| three smaller LEDs, one red, one green, and one blue. Changing the brightness of this three
+				| LEDs we can generate a total of 768 colors, since each of
+				| the small LEDs have 255 levels of intensity (we are considering 'black' when the three 
+				|	LEDs are off). 
+			p
+				| On the page we only set the color from the scale. On update an AJAX request is generated
+				| The server will then received this new number, send it to the Arduino Board by serial USB
+				| connection. Next, the arduino will interpret this new value and change the LED color 
+				| accordingly. If no error is produced then a success (200) response is sent back to the 
+				| client. Else, an error (400) response is sent back.
+			p
+				| Everytime we move the slider we trigger an AJAX POST request to the Raspberry who then 
+				| tells the arduino to change the LED color. You can compare the color shown in the page
+				| with the one the LED has.
+			h2.content-subhead Color Form
+			div(class="info message" id="alert")
+			form(class="pure-form pure-form-aligned")
+				fieldset
+					div.pure-control-group
+						label(for="color") Color
+						input(id="color" type="text" placeholder="Color" name="color" readonly=true)
+					div.pure-control-group
+						label(for="slider")
+						input(type="range" min="0" max="768" name="slider")
+						span(id="color_value" class="color_value")
 
+	script(id="home", type="text/template")
+		section.header
+			h1=title
+			h2 Control an Arduino with a Raspberry Pi powered by Node.JS
+		section.content
+			h2.content-subhead Description
+			p 
+				| The idea behind this project is to be able to control an Arduino through a Node.JS
+				| application running on a Raspberry Pi. 
+			p
+				| For now the Raspberry Pi can talk with the Arduino using a USB serial connection. In the 
+				| future other means of communication between the devices can be added. Messeges are exchanged
+				| between them resulting in different actions. 
+			p
+				| Node.JS is a good choice to power the project since is very simple to combine the device 
+				| communication, and a web server. The asynchronous nature of NodeJS also aliviates the 
+				| processing on the Raspberry Pi. 
+			h2.content-subhead Project Images
+			div.pure-g
+				div.pure-u-1-4
+					img(class="pure-img-responsive", src="https://lh6.googleusercontent.com/-m88dpWcWBI4/AAAAAAAAAAI/AAAAAAAAAKI/OfF2OkZjTqw/photo.jpg" alt="Raspberry Pi logo")
+				div.pure-u-1-4
+					img(class="pure-img-responsive", src="http://upload.wikimedia.org/wikipedia/commons/3/3d/RaspberryPi.jpg" alt="Raspberry Pi")
+				div.pure-u-1-4
+					img(class="pure-img-responsive", src="http://arduino.cc/en/uploads/Main/ArduinoUno_r2_front450px.jpg" alt="Arduino Uno")
+				div.pure-u-1-4
+					img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")

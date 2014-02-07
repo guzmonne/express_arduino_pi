@@ -17,12 +17,15 @@ html
 			nav#menu
 				include menu
 			section#main
-				section.header
+				//section.header
 					block header
-				section.content
+				//section.content
 					block content
-
+		
 		// RUN SCRIPTS AT THE END
+		block scripts
 		script(src='/javascripts/yui.js')
 		script(type='text/javascript', src='http://code.jquery.com/jquery-2.1.0.min.js')
-		block scripts
+		script(type='text/javascript', src='http://underscorejs.org/underscore-min.js')
+		script(type='text/javascript', src='http://backbonejs.org/backbone-min.js')
+		script(type='text/javascript', src='javascripts/app.js')
