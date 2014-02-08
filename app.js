@@ -4,9 +4,10 @@
  */
 
 var express = require('express')
-  , routes = require('./routes')
-  , http = require('http')
-  , path = require('path');
+	, routes = require('./routes')
+	, http   = require('http')
+	, path   = require('path')
+	, sse    = require('./libs/server-side_events');
 
 var app = express();
 
@@ -34,6 +35,7 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.get('/color_led', routes.colorLed);
 app.post('/color_led', routes.changeColorLed);
+app.get('/sse', sse.sseInit);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

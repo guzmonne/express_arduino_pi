@@ -1,0 +1,139 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+
+\title{Express Arduino Pi - Conceptual Design}
+
+\author{Guzman Monne}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This document will serve as reference for the "Express Arduino Pi" project. It will include what the project is about, what will be done and how it will be done. 
+
+All the planned steps to build it will be explained and the dates for the completition of each step will be outlined. Additional information can also be found here explaining the reason behind the project.
+
+\section{Description}
+\label{sec:description}
+
+\subsection{Project Outline}
+
+The main goal of the project is to create a web application that can control some Arduino boards to implement domotic solutions. For example, we can monitor the temperature or humidity of the house, turn on/off lights (or any simple electrical connection), monitor inputs from the house (like a doorbell), etc. Implementing this circuits using the Arduino boards is fairly simple, but the interesting part is being able to remotely control and monitor this solutions. We can do this using a Raspberry Pi.
+
+Even though the Pi is not a remarkably fast computer, is perfect for our purposes. Since it suports a version of Debian, called "Raspbian", we can use modern open source tools to help us build our web server, and control the Arduino boards.
+
+To build the web server that will support the applications we are going to use "Node.JS". It is a JavaScript platform built on top of "Google Chrome's JavaScript runtime" designed to create fast and scalable network application. The main difference between Node and other platforms is that it uses an event-driven, non-blocking input/output model. Which makes it great for the kind of application we want to build. Using the event-driven nature of node we can create communications between the web clients and the arduino boards in a very simple way. Also, using a non-blocking style, we can make sure that the app never stops reacting to the client and arduino requests without needing to control multiple threads.
+
+Also, Node.JS has a very large and busy community. There are thousands of Node packages (little node programs or libraries) created by people all over the world that will help us build our project. NPM, is the standard package manager for Node.JS, and is the tool to use to  add the dependecies needed for the project. Some of this packages to use will be explained in the next sections.
+
+The arduino boards will be connected to the Raspberry Pi to its USB connections. There are other ways to connect this devices, but USB/serial connections are very easy to set up and work with. All the Arduino sketches will be build by the Raspberry Pi and uploaded to th devices using "INO", a tool that replaces the Arduino IDE and allows you to build and upload the sketches using the command line. It has also the advantage of letting you use any text editor you want instead of using the built in IDE.
+
+Finnaly, "Backbone.js" and "Pure.css" will be use for the web application. Backbone is a MV* frontend framework. It was built to help developers keep the client JavaScript code in check and to build one-page web applications served by RESTful APIs. Having all the code in the clients will help aliviate the http requests on the web server since it will only have to serve the main page, and then the rest of the application will be rendered using JavaScripts templates on the browser. Pure, is a very light CSS framework used to jump start the design of web pages. We will just use it to give a nice look to the web app without having to write all the CSS code needed.
+
+All the code needed for the app will be built on a Ubuntu 12.04 machine but will reside on the Raspberry Pi, where all the Node packages and the database will be installed. To keep the project updated "rsync" and "gulp" will be used. The first one is a normal Unix program used to keep files in sync between folders in the same machine or over ssh connections. On the other side, "gulp" is a task manager build on Node.JS. It will track the files in the project, lint code errors, run tests, and - if everything is fine - sync the folders using "rsync".
+
+\subsection{Tools}
+
+\subsubsection{Hardware}
+
+\begin{itemize}
+
+\item[Raspberry Pi] \hfill \\ 
+It will be the heart of the entire project. Connected to it will be both Arduino boards via USB/serial connection. The power needed by this boards will be provided by it. A Node.JS webserver will be run on it along with a Redis database and several Node packages to control the serial communications with the board and to push notifications to the clients using a very simple pub/sub model.
+
+\item[Arduino UNO] \hfill \\ 
+All the electrical circuits will be built on top of Arduino UNO boards. There will be two boards with different circuits connected and powered by the Raspberry Pi. Each of this boards will have different components attached to implement different domotic abstractions. One of them will use "Groove Shields". This are little boards that can be attached with ease to an Arduino board great for prototyping without needed to built an entire circuit. The other one will have different circuits created on top of a breadbord, which would be a more conventional prototyping aproach when using an Arduino. Finnaly both of them will comunicate with the Raspberry Pi by USB/serial connection.
+
+\end{itemize}
+
+\subsubsection{Software}
+
+\begin{itemize}
+
+\item[Node.JS] \hfill \\ 
+JavaScript platform used to create network applications. The webserver and all the necessary libraries needed to create the communications between the server and the clients will be run on top of it.
+
+\item[INO] \hfill \\ 
+A very simple, but efficient, command line substitution for the Arduino IDE. It allows to build and upload sketches to any arduino board using the command line. This application will be run from the Raspberry Pi so we can modify the configuration of the board without having to disconnect the boards from it.
+
+\item[Redis] \hfill \\
+Is a Key storage database which is great for applications that don't need all the added properties of a RDBMS system. The lightweight nature and ease of use of Redis will be great to store readings from the Arduino boards like temperatures, that we can then display on the client.
+
+\end{itemize}
+
+\subsubsection {Node.JS Packages}
+
+\begin {itemize}
+
+\item[Express] \hfill \\ 
+A lightweight webserver. All the http request will be handle by this module. It will serve as our API for the client and will also push messages to the clients using different middlewares. Authentication can be implemented with Express but it is not a main part of the project.
+
+\item[SSE] \hfill \\ 
+Server-Side Events pushed by the server were implemented with HTTP5. They allow for the server to send messages to the client without a request from it. SSE is a Node package that creates the necessary configuration to establish this communications. We will wrap this module with our own and create a new even-driven module to react to the Arduino boards inputs.
+
+\item[Gulp] \hfill \\ 
+Task manager for Node.JS. It helps to check for code errors, run tests, monito files and keep the project in sync.
+
+\item[Serial Monitor] \hfill \\ 
+A node module for node that allows to open serial connections. We will use this package to write and read messages to the Arduino boards.
+
+\end {itemize}
+
+\subsubsection {Web Libraries}
+
+\begin {itemize}
+
+\item[Backbone.JS] \hfill \\ 
+MV* Front-End framework to build single-page web applications.
+\item[Pure.CSS] \hfill \\ 
+Basic style library to create responsive web pages.
+
+\end {itemize}
+
+\section {Schedule}
+
+
+\begin{enumerate}
+  \item[7 of Febraury] Rasberry Pi Configuration
+  \begin{enumerate}
+  	\item Install Raspbian.
+    \item Build Node.JS from source.
+    \item Build Redis from source.
+    \item Install all Node.JS packages and dependencies.
+    \item Set up project folder on development machine and syncronization tasks with Pi.
+  \end{enumerate}
+  \item[11 of Febraury] First prototype version
+  \begin {enumerate}
+  	\item Webserver working and first version of web app.
+    \item Serial communications between Raspberry Pi and Arduino boards running.
+    \item Simple electrical circuits built for simple communication testing simulating real case domotic scenarios.
+    \item Server-side events working correctly.
+  \end{enumerate}
+  \item [15 of Febraury] Second prototype version
+  \begin {enumerate}
+  	\item All domotic scenarios implemented.
+    \item Temperature and humidity measurements being saved on Redis.
+    \item Data representation on client side.
+    \item Full comunnication between clients and Arduino circuits.
+    \item Express configuration for production enviroment.
+  \end{enumerate}
+  \item[16-17 of Febraury] Testing and data colection.
+    \begin {enumerate}
+  	\item Process monitoring.
+    \item Application response time.
+    \item Log review.
+    \item Database performance.
+  \end{enumerate}
+  \item[18 of Febraury] Video Demonstration
+  \item[20 of Febraury] Final document delivery.
+\end{enumerate}
+
+\end{document}

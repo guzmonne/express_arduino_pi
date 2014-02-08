@@ -256,3 +256,11 @@ Hides the menu at `48em`, but modify this based on your app's needs.
     border-radius: 15px;
     background-color: rgb(0, 127, 128);
 }
+
+span.green {
+    background-color: #99CC99;
+}
+
+span.red {
+    background-color: #E86850;
+}

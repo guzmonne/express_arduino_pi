@@ -12,7 +12,37 @@ window.App = {
 		this.mainRouter = new App.Routers.MainRouter();
 		this.menuView   = new App.Views.Menu();
 		$('#menu').html(this.menuView.render().el);
+		this.sseInit();
     return Backbone.history.start();
+  },
+
+  sseInit: function() {
+    var _this = this;
+    if (!!window.EventSource) {
+      this.vent.source = new EventSource("/sse");
+      this.vent.source.addEventListener('sse::connection', function(e) {
+        return console.log(e);
+      });
+      this.vent.source.onmessage = function(event) {
+        var data;
+        data = JSON.parse(event.data);
+        event = data.event;
+        delete data.event;
+        console.log(data);
+        return _this.vent.trigger(event, data);
+      };
+      return this.vent.source.onerror = function(event) {
+        switch (event.target.readyState) {
+          case EventSource.CONNECTING:
+            break;
+          case EventSource.CLOSED:
+            console.log("Connection failed. Will not retry.");
+            break;
+        }
+      };
+    } else {
+      return console.log("EventSource not supported.");
+    }
   },
 };
 
@@ -83,6 +113,29 @@ App.Views.ColorLed = Backbone.View.extend({
 	},
 });
 
+App.Views.WhiteButton = Backbone.View.extend({
+	template: _.template($('#whiteButton-template').html()),
+
+	initialize: function(){
+		this.listenTo(App.vent, "whiteButton", this.buttonState);
+	},
+
+	render: function(){
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	buttonState: function(value){
+		if (value.data === 0){
+			this.$('span').removeClass('green').addClass('red');
+			this.$('#led_state').val("OFF");
+		} else {
+			this.$('span').removeClass('red').addClass('green');
+			this.$('#led_state').val("ON");
+		}
+	},
+});
+
 App.Views.Menu = Backbone.View.extend({
 	template: _.template($('#menu-template').html()),
 
@@ -116,9 +169,10 @@ App.Routers.MainRouter = Backbone.Router.extend({
 	currentView: null,
 
 	routes: {
-		''         : 'home',
-		'home'     : 'home',
-		'color_led': 'colorLed'
+		''            : 'home',
+		'home'        : 'home',
+		'color_led'   : 'colorLed',
+		'white_button': 'whiteButton'
 	},
 
 	swapView: function(view){
@@ -135,6 +189,10 @@ App.Routers.MainRouter = Backbone.Router.extend({
 
 	colorLed: function(){
 		this.swapView(new App.Views.ColorLed());
+	},
+
+	whiteButton: function(){
+		this.swapView(new App.Views.WhiteButton());
 	},
 });
 

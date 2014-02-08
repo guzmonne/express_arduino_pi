@@ -27,6 +27,32 @@ extends layout
 //- 			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
 // TEMPLATES
 block scripts
+	script(id="whiteButton-template", type="text/template")
+		section.header
+			h1=title
+			h2 Press Button on Arduino Shield to turn on LED
+		section.content
+			h2.content-subhead Information
+			p
+				| In this example we have a white LED and a button connected to an Arduino UNO using 
+				| Groove Shield board. When the button is pressed the LED is turned on. At the same
+				| time a message is sent from the server to the connected clients using the 
+				| 'Server-Side Events' HTTP protocol, which enables pushing messages from the server
+				| to the clients.
+			p
+				| We could use WebSockets to connect the Raspberry Pi to the clients but it can become
+				| quite demanding for the server if too many connections are needed. Besides, there
+				| are not going to be many messages from the client to the server, or from client to 
+				| client to demand the use of websockets. Server-Side Events are less demanding for 
+				| the server and are perfect to create communication puhed from the server.
+			h2.content-subhead LED State
+			form(class="pure-form pure-form-aligned")
+				fieldset
+					div.pure-control-group
+						label(for="led_state") LED State
+						input(id="led_state" type="text" placeholder="LED State" name="led_state" value="OFF" readonly=true)
+						span(id="color_value" class="color_value red")
+
 	script(id="menu-template", type="text/template")
 		div(class="pure-menu pure-menu-open")
 			a(class="pure-menu-heading", href="#home") EAPi
@@ -35,6 +61,8 @@ block scripts
 					a(href="#home") Home
 				li.pure-menu-selected
 					a(href="#color_led") Color LED
+				li.pure-menu-selected
+					a(href="#white_button") White Button
 
 	script(id="color_led-template", type="text/template")
 		section.header
