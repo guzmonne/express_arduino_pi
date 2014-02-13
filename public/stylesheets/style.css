@@ -264,3 +264,72 @@ span.green {
 span.red {
     background-color: #E86850;
 }
+
+.horizontal-menu {
+    cursor: pointer;
+}
+
+.horizontal-menu .pure-menu-selected {
+    background: #1f8dd6;
+}
+
+.pure-menu li a:hover {
+    background: #32adff;
+    color: #fff;
+}
+
+.horizontal-menu .pure-menu-selected a {
+    color : #fff;
+}
+
+.horizontal-menu .pure-menu-selected a:hover {
+    color : #fff;
+}
+
+.pure-table {
+    width : 100%;
+}
+
+a {
+    cursor: pointer;
+}
+
+.pure-button-success,
+.pure-button-error,
+.pure-button-warning,
+.pure-button-secondary {
+    color: white;
+    border-radius: 4px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.pure-button-success {
+    background: rgb(28, 184, 65); /* this is a green */
+}
+
+.pure-button-error {
+    background: rgb(202, 60, 60); /* this is a maroon */
+}
+
+.pure-button-warning {
+    background: rgb(223, 117, 20); /* this is an orange */
+}
+
+.pure-button-secondary {
+    background: rgb(66, 184, 221); /* this is a light blue */
+}
+
+aside {
+    background: #1f8dd6; /* same color as selected state on site menu */
+    padding: 0.3em 1em;
+    border-radius: 3px;
+    color: #fff;
+    margin: 10px;
+}
+    aside a, aside a:visited {
+        color: rgb(169, 226, 255);
+    }
+
+    aside.alert {
+        background: #EE4444;
+    }

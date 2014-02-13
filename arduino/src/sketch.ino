@@ -1,3 +1,31 @@
+/************************************
+	LCD PINS
+	========
+  1 to GND
+  2 to 5V
+  3 to the center pin on the potentiometer
+  4 to Arduino digital pin 12
+  5 to GND
+  6 to Arduino digital pin 6
+  7 (no connection)
+  8 (no connection)
+  9 (no connection)
+  10 (no connection)
+  11 to Arduino digital pin 5
+  12 to Arduino digital pin 4
+  13 to Arduino digital pin 3
+  14 to Arduino digital pin 2
+  15 to 5V
+  16 to GND
+************************************/
+
+// LCD Library Initialize
+// ====================== 
+# include <LiquidCrystal.h>
+// Load the pins
+// -------------
+LiquidCrystal lcd(12,6,5,4,3,2);
+
 // Constants
 // =========
 const int SERIAL_PIN = 13;
@@ -14,6 +42,13 @@ int incomingByte;
 
 void setup()
 {
+	// Initialize a LCD of two lines and 16 characters
+	lcd.begin(16, 2);
+	// Clear the screen
+	lcd.clear();
+	// Print basic hello message
+	lcd.print("Te amo chiqui!");
+
 	// Set default color
 	color = 500;
 
@@ -29,6 +64,14 @@ void setup()
 
 
 void loop(){
+	// Set cursor at the second line of the LCD and print the 
+	// seconds since the Arduino was turned on.
+	lcd.setCursor(0, 1);      // Set the cursor on the begining of the second row
+	lcd.print("       ");     // Erase the biggest number we can display
+	lcd.setCursor(0, 1);      // Reset the cursor to the beggining of the line
+	lcd.print(millis()/1000); // Print the seconds
+
+
 	while (Serial.available() && toggleComplete == false){
 		char inChar = (char)Serial.read();
 		//Serial.print("We have recieved: ");

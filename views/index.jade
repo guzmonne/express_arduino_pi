@@ -1,32 +1,234 @@
 extends layout
-//- block header
-//- 	h1=title
-//- 	h2 Control an Arduino with a Raspberry Pi powered by Node.JS
-//- block content
-//- 	h2.content-subhead Description
-//- 	p 
-//- 		| The idea behind this project is to be able to control an Arduino through a Node.JS
-//- 		| application running on a Raspberry Pi. 
-//- 	p
-//- 		| For now the Raspberry Pi can talk with the Arduino using a USB serial connection. In the 
-//- 		| future other means of communication between the devices can be added. Messeges are exchanged
-//- 		| between them resulting in different actions. 
-//- 	p
-//- 		| Node.JS is a good choice to power the project since is very simple to combine the device 
-//- 		| communication, and a web server. The asynchronous nature of NodeJS also aliviates the 
-//- 		| processing on the Raspberry Pi. 
-//- 	h2.content-subhead Project Images
-//- 	div.pure-g
-//- 		div.pure-u-1-4
-//- 			img(class="pure-img-responsive", src="https://lh6.googleusercontent.com/-m88dpWcWBI4/AAAAAAAAAAI/AAAAAAAAAKI/OfF2OkZjTqw/photo.jpg" alt="Raspberry Pi logo")
-//- 		div.pure-u-1-4
-//- 			img(class="pure-img-responsive", src="http://upload.wikimedia.org/wikipedia/commons/3/3d/RaspberryPi.jpg" alt="Raspberry Pi")
-//- 		div.pure-u-1-4
-//- 			img(class="pure-img-responsive", src="http://arduino.cc/en/uploads/Main/ArduinoUno_r2_front450px.jpg" alt="Arduino Uno")
-//- 		div.pure-u-1-4
-//- 			img(class="pure-img-responsive", src="http://www.lacatedralonline.es/centros-de-innovacion/system/attachments/10161/original/arduinologo.jpg?2013-03-06%2010:37:27%20+0100" alt="Arduino Logo")
 // TEMPLATES
 block scripts
+	script(id="lcd-template", type="text/template")
+		section.header
+			h1= title
+			h2 LCD
+		section.content
+			h2.content-subhead Information
+			p
+				| In the readboard we have a 16x2 LCD display. It is connected to 6 digital pins of 
+				| the arduino board and it uses a potentiometer to adjust the LCD contrast. 
+			p 
+				| In this page we can send messages to be displayed to the device. They will be displayed
+				| sequentialy and some of them will have an expiration time.
+			h2.content-subhead
+			aside(class="info alert")
+			form(class="pure-form pure-form-aligned")
+				fieldset
+					div.pure-control-group
+						label(for="message") Message
+						textarea(id="message" type="text" placeholder="Message" name="message" rows="4" cols="50")
+					div.pure-control-group
+						label(for="expiration") Expiration
+						input(type='number' placeholder='Expiration' id="expiration" name='expiration')
+						span   in minutes
+					div.pure-controls
+						input(type="submit" id="save" class="pure-button pure-button-primary" value="Submit")
+						input(type="submit" id="edit" class="pure-button pure-button-secondary" value="Save Changes")
+			div(id="messages")
+				br
+				table(class="pure-table pure-table-striped")
+					thead
+						tr
+							th Message
+							th Expiration
+							th
+							th
+					tbody
+
+	script(id="humidity-template", type="text/template")
+		section.header
+			h1=title
+			h2 Room Humidity Data
+		section.content
+			h2.content-subhead Information
+			p
+				| Connected to the Arduino Shield we have a temperature and humidity sensor. Every 30
+				| seconds we poll for this values and we store them on a Redis database. On this page
+				| we can fetch the humidity data and display it on a graph, on a table, or download
+				| it as CSV or PDF format.
+			p
+				| We use a library provided by 
+				em 'Seed Studio'
+				|  that manages the reads from the sensor on the Groove Shield. To limit the measurments
+				| to every 30 seconds we wrap the readings inside an 'if' statement, and calling the 
+				| 'millis()' Arduino function inside of it.
+			p
+				| This information is the transmited by serial to the Pi, where it is parsed to create
+				| an object with the necessary parameters to save it on a Sorted Set data structure on
+				| Redis, using a timestamp as the 'score' value. 
+			p 
+				| Having the data stored in a 'sorted set' lets us manipulate the requests with is. For
+				| example if we want the data between two dates we can make a 'zrange' requests passing
+				| the two dates as timestamps. This means that we can filter the data to the seconds, 
+				| then creating the timestamps and finnaly polling redis for the information before
+				| sending it back to the client to be rendered.
+			p 
+				| There is one final property of Redis that we can exploit with this setup that is its 
+				| ability to subscribe and publish data changes. If we have time we can create an online
+				| monitor of our room temperature or humidity levels.
+			h2.content-subhead Data
+			div(class="pure-menu pure-menu-open pure-menu-horizontal")
+				ul(id="data-format", class="horizontal-menu")
+					li.pure-menu-selected
+						a(data-view="#chart") Chart
+					li
+						a(data-view="#table") Table
+			div(id="chart" style="text-align: center")
+				br
+				canvas(id="hum-chart" width="600" height="600")
+			br
+			div(class="pure-menu pure-menu-open pure-menu-horizontal")
+				ul(id="chart-filter-time" class="horizontal-menu")
+					li.pure-menu-selected
+						a(data-hours=3) 3 hrs
+					li
+						a(data-hours=6) 6 hrs
+					li
+						a(data-hours=12) 12 hrs
+					li
+						a(data-hours=24) 24 hrs
+					li
+						a(data-hours=48) 2 days
+					li
+						a(data-hours=72) 3 days
+					li
+						a(data-hours=0) Custom
+			br
+			form(class="pure-form pure-form-aligned" id="filter-data")
+				fieldset
+					legend Filter data by Date and Time
+					div(class="pure-g")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="from") From: 
+							input(id="from" type="date" placeholder="From" name="from")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") Between: 
+							input(id="between" type="time" placeholder="Between" name="between")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") To: 
+							input(id="to" type="date" placeholder="To" name="to")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") And: 
+							input(id="and" type="time" placeholder="And" name="and")
+						div(class="pure-controls")
+							input(type="submit" value="Filter" class="pure-button pure-button-primary")
+			div#table
+				br
+				table(class="pure-table pure-table-striped")
+					thead
+						tr
+							th #
+							th Date
+							th Time
+							th Temperature
+					tbody
+
+	script(id="temperature-template", type="text/template")
+		section.header
+			h1=title
+			h2 Room Temperature Data
+		section.content
+			h2.content-subhead Information
+			p
+				| Connected to the Arduino Shield we have a temperature and humidity sensor. Every 30
+				| seconds we poll for this values and we store them on a Redis database. On this page
+				| we can fetch the temperature data and display it on a graph, on a table, or download
+				| it as CSV or PDF format.
+			p
+				| We use a library provided by 
+				em 'Seed Studio'
+				|  that manages the reads from the sensor on the Groove Shield. To limit the measurments
+				| to every 30 seconds we wrap the readings inside an 'if' statement, and calling the 
+				| 'millis()' Arduino function inside of it.
+			p
+				| This information is the transmited by serial to the Pi, where it is parsed to create
+				| an object with the necessary parameters to save it on a Sorted Set data structure on
+				| Redis, using a timestamp as the 'score' value. 
+			p 
+				| Having the data stored in a 'sorted set' lets us manipulate the requests with is. For
+				| example if we want the data between two dates we can make a 'zrange' requests passing
+				| the two dates as timestamps. This means that we can filter the data to the seconds, 
+				| then creating the timestamps and finnaly polling redis for the information before
+				| sending it back to the client to be rendered.
+			p 
+				| There is one final property of Redis that we can exploit with this setup that is its 
+				| ability to subscribe and publish data changes. If we have time we can create an online
+				| monitor of our room temperature or humidity levels.
+			h2.content-subhead Data
+			div(class="pure-menu pure-menu-open pure-menu-horizontal")
+				ul(id="data-format", class="horizontal-menu")
+					li.pure-menu-selected
+						a(data-view="#chart") Chart
+					li
+						a(data-view="#table") Table
+			div#chart
+				br
+				canvas(id="temp-chart" width="800" height="600")
+				div(class="pure-menu pure-menu-open pure-menu-horizontal")
+					ul(id="chart-minutes-average" class="horizontal-menu")
+						li.pure-menu-selected
+							a(data-minutes=5) 5 min
+						li
+							a(data-minutes=10) 10 min
+						li
+							a(data-minutes=30) 30 min
+						li
+							a(data-minutes=60) 60 min
+						li
+							a(data-minutes=180) 3 hrs
+						li
+							a(data-minutes=1440) 24 hrs
+				br
+			br
+			div(class="pure-menu pure-menu-open pure-menu-horizontal")
+				ul(id="chart-filter-time" class="horizontal-menu")
+					li.pure-menu-selected
+						a(data-hours=3) 3 hrs
+					li
+						a(data-hours=6) 6 hrs
+					li
+						a(data-hours=12) 12 hrs
+					li
+						a(data-hours=24) 24 hrs
+					li
+						a(data-hours=48) 2 days
+					li
+						a(data-hours=72) 3 days
+					li
+						a(data-hours=0) Custom
+			br
+			form(class="pure-form pure-form-aligned" id="filter-data")
+				fieldset
+					legend Filter data by Date and Time
+					div(class="pure-g")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="from") From: 
+							input(id="from" type="date" placeholder="From" name="from")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") Between: 
+							input(id="between" type="time" placeholder="Between" name="between")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") To: 
+							input(id="to" type="date" placeholder="To" name="to")
+						div(class="pure-u-1-2 pure-control-group")
+							label(for="to") And: 
+							input(id="and" type="time" placeholder="And" name="and")
+						div(class="pure-controls")
+							input(type="submit" value="Filter" class="pure-button pure-button-primary")
+			div#table
+				br
+				table(class="pure-table pure-table-striped")
+					thead
+						tr
+							th #
+							th Date
+							th Time
+							th Temperature
+					tbody
+
 	script(id="whiteButton-template", type="text/template")
 		section.header
 			h1=title
@@ -59,10 +261,16 @@ block scripts
 			ul
 				li(class="menu-item-divided")
 					a(href="#home") Home
-				li.pure-menu-selected
+				li
 					a(href="#color_led") Color LED
-				li.pure-menu-selected
+				li
 					a(href="#white_button") White Button
+				li
+					a(href="#temperature") Temperature
+				li
+					a(href="#humidity") Humidity
+				li
+					a(href="#lcd") LCD Messages
 
 	script(id="color_led-template", type="text/template")
 		section.header

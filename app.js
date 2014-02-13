@@ -1,3 +1,7 @@
+// =========
+// NEW RELIC
+// =========
+require('newrelic');
 
 /**
  * Module dependencies.
@@ -36,6 +40,12 @@ app.get('/', routes.index);
 app.get('/color_led', routes.colorLed);
 app.post('/color_led', routes.changeColorLed);
 app.get('/sse', sse.sseInit);
+app.get('/temperatures', routes.temperatures);
+app.get('/humidities', routes.humidities);
+app.get('/messages', routes.getMessages);
+app.post('/messages', routes.createMessage);
+app.put('/messages/:id', routes.editMessage);
+app.delete('/messages/:id', routes.deleteMessage);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
