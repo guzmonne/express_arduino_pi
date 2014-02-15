@@ -3,6 +3,7 @@ Express Arduino Pi
 
 Project Details
 ---------------
+
 | --- | --- |
 | Author     | Guzmán Monné |
 | Course | Intelligent Embedded Systems | 
