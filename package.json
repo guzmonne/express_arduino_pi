@@ -10,7 +10,8 @@
     "jade"      : "*",
     "serialport": "*",
     "sse"       : "0.0.5",
-    "newrelic"  : "*"
+    "newrelic"  : "*",
+    "async"     : "*"
   },
   "devDependencies": {
     "gulp-util"  : "~2.2.14",

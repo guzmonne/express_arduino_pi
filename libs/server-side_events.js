@@ -14,6 +14,7 @@ module.exports.sseInit = function(req, res) {
   Vent.addClient(client);
   Vent.connectClient(client);
   Vent.subscribe(client.id, 'whiteButton');
+  Vent.subscribe(client.id, 'message:expiration:decrese');
 }
 
 module.exports.serverInit = function(server) {

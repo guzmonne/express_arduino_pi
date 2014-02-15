@@ -46,6 +46,8 @@ app.get('/messages', routes.getMessages);
 app.post('/messages', routes.createMessage);
 app.put('/messages/:id', routes.editMessage);
 app.delete('/messages/:id', routes.deleteMessage);
+app.get('/servo', routes.getServoValue);
+app.post('/servo', routes.servo);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

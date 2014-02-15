@@ -3,6 +3,7 @@
 void setup();
 void loop();
 int stringToInt();
+void printLCD();
 void showRGB(int color);
 #line 1 "src/sketch.ino"
 /************************************
@@ -42,8 +43,13 @@ const int BLUE_PIN   = 11;
 
 // Variables
 // =========
-String inputString 			= "";
+String inputString     = "";
+String message1         = "Hello,";
+String message2					= "World!";
 boolean toggleComplete = false;
+boolean newColor       = false;
+boolean newMessage     = false;
+int byteCount					 = 0;
 int color;
 int incomingByte;
 
@@ -54,7 +60,10 @@ void setup()
 	// Clear the screen
 	lcd.clear();
 	// Print basic hello message
-	lcd.print("Te amo chiqui!");
+	lcd.setCursor(0,0);
+	lcd.print(message1);
+	lcd.setCursor(0,1);
+	lcd.print(message2);
 
 	// Set default color
 	color = 500;
@@ -73,36 +82,63 @@ void setup()
 void loop(){
 	// Set cursor at the second line of the LCD and print the 
 	// seconds since the Arduino was turned on.
-	lcd.setCursor(0, 1);      // Set the cursor on the begining of the second row
-	lcd.print("       ");     // Erase the biggest number we can display
-	lcd.setCursor(0, 1);      // Reset the cursor to the beggining of the line
-	lcd.print(millis()/1000); // Print the seconds
-
+	// lcd.setCursor(0, 1);      // Set the cursor on the begining of the second row
+	// lcd.print("       ");     // Erase the biggest number we can display
+	// lcd.setCursor(0, 1);      // Reset the cursor to the beggining of the line
+	// lcd.print(millis()/1000); // Print the seconds
 
 	while (Serial.available() && toggleComplete == false){
 		char inChar = (char)Serial.read();
-		//Serial.print("We have recieved: ");
-		//Serial.println(inChar, HEX);
 
-		if (inChar == 0x7B){ // Starts communication
+		// Receiving new message
+		if (inChar == 0x5B){
+			message1   = "";
+			message2   = "";
+			newMessage = true;
+			byteCount  = 0; 
+			//Serial.println("New Message start");
+		} else if (inChar == 0x5D){
+			toggleComplete = true;
+			//Serial.println();
+			//Serial.println("New Message end");
+		// Receiving new number
+		} else if (inChar == 0x7B){ // Starts communication
 			inputString = "";
-			Serial.println("String start");
+			newColor = true;
+			//Serial.println("Number start");
 		} else if (inChar == 0x7D){ // Ends communication
 			toggleComplete = true;
-			Serial.println("String End");
+			//Serial.println();
+			//Serial.println("Number End");
 		} else {
-			inputString += inChar;
-			Serial.print("We have recieved: ");
-			Serial.println(inChar, HEX);
+		// Saving data
+			if (newMessage == true){
+				if (byteCount < 16){
+					message1 += inChar;
+				} else {
+					message2 += inChar;
+				}
+				byteCount++;
+			} else if (newColor == true){
+				inputString += inChar;
+			}
+			//Serial.print(inChar);
 		}
 	}
 
 	if (toggleComplete == true){
-		// Convert String to Int
-		int recievedVal = stringToInt();
-		color = recievedVal;
-		Serial.print("The LED color is now: ");
-		Serial.println(recievedVal);
+		if (newColor == true){
+			// Convert String to Int
+			int recievedVal = stringToInt();
+			color = recievedVal;
+			Serial.print("The LED color is now: ");
+			Serial.println(recievedVal);
+		}
+		if (newMessage == true){
+			printLCD();
+		}
+		newColor       = false;
+		newMessage     = false;
 		toggleComplete = false;
 	}
 
@@ -116,6 +152,14 @@ int stringToInt(){
 	inputString.toCharArray(charHolder, inputStringLength);
 	int _recievedVal = atoi(charHolder);
 	return _recievedVal;
+}
+
+void printLCD(){
+	lcd.clear();
+	lcd.setCursor(0,0);
+	lcd.print(message1);
+	lcd.setCursor(0,1);
+	lcd.print(message2);
 }
 
 void showRGB(int color)

@@ -16,6 +16,15 @@ var SerialPort = serialport.SerialPort;
 // ====
 var Vent       = require('./vent');
 var randomInt;
+// Async
+// =====
+var async = require('async');
+// Messages
+// ========
+var msg = require('../libs/messages');
+
+// Messages Array
+var messages = [];
 
 var serialPort = new SerialPort('/dev/ttyUSB0', {
 	baudrate: 9600,
@@ -27,9 +36,8 @@ var serialShield = new SerialPort('/dev/ttyACM0', {
 	parser  : serialport.parsers.readline('\n')
 });
 
-exports.serialPort = serialPort;
+exports.serialPort   = serialPort;
 exports.serialShield = serialShield;
-
 
 serialPort.on('open', function(){
 	console.log('Connection to RedBoard Open');
@@ -75,6 +83,55 @@ serialPort.on('open', function(){
 			//console.log( results  + ' bytes where sent');
 		});
 	});
+	// Received new message
+	// --------------------
+	serialPort.on('new_message', function(message){
+		messages.push(message);
+		console.log(messages);
+		// If this is the only message start the loop
+		if (messages.length === 1){
+			startMessageLoop();
+		}
+	});
+	// Send message
+	// ------------
+	serialPort.on('send_message', function(message){
+		serialPort.write(inSquareBrackets(message), function(err){
+			if (err){
+				return console.log('Serial Error: ' + err);
+			}
+		});
+	});
+	// Edit message
+	// ------------
+	serialPort.on('edit_message', function(message){
+		async.filter(messages, function(el, callback){
+			if (el.id === message.id){
+				return callback(false);
+			} else {
+				callback(true);
+			}
+		}, function(results){
+			messages = results;
+			messages.push(message);
+		});
+	});
+	// Delete message
+	// --------------
+	serialPort.on('delete_message', function(id){
+		async.filter(messages, function(el, callback){
+			if (el.id === id){
+				return callback(false);
+			} else {
+				callback(true);
+			}
+		}, function(results){
+			messages = results;
+		});
+	});
+	// Initialize message delivery
+	// ---------------------------
+	fetchMessages();
 });
 
 serialShield.on('open', function(){
@@ -85,20 +142,38 @@ serialShield.on('open', function(){
 	// Receive data
 	// ------------
 	serialShield.on('data', function(data){
-		// var sData = data.split(':');
-		// var sLength = sData.length;
-		// sData[sLength - 1] = sData[sLength - 1].split('\r')[0];
-		// console.log(sData);
 		var sData = parseData(data);
 		reactToData(sData);
 	});
+	// Move servo
+	// ----------
+	serialShield.on('servo_move', function(degrees){
+		serialShield.write(inBrackets(parseInt(degrees)), function(err){
+			if (err){
+				return console.log(err);
+			}
+			client.set('servo_value', parseInt(degrees), function(err, reply){
+				if (err){
+					console.log('Redis error: ' + err);
+				}
+				console.log(reply);
+			});
+		});
+	});
 });
+
+function randomServo(){
+	setInterval(function(){
+		var randomnumber=Math.floor(Math.random()*180);
+		console.log('New Servo value: ' + randomnumber);
+		serialShield.emit('servo_move', randomnumber);
+	}, 10000);
+}
 
 function parseData(data){
 	var sData  = data.split(':');
 	var length = sData.length;
 	sData[length - 1] = sData[length - 1].split('\r')[0];
-	console.log(sData);
 	return sData;
 }
 
@@ -156,8 +231,6 @@ function createDataObject(data){
 }
 
 function saveDataString(data){
-	//var key = createKey(data[0]);
-	//client.set(key, data[1], redis.print);
 	var object = createDataObject(data);
 	zAddObject(object);
 }
@@ -175,6 +248,10 @@ function inBrackets(data){
 	return '{' + data + '}';
 }
 
+function inSquareBrackets(data){
+	return '[' + data + ']';
+}
+
 function sendRandomNumber() {
 	setInterval(function(){
 		randomInt = Math.floor(Math.random()*768);
@@ -182,7 +259,54 @@ function sendRandomNumber() {
 			if (err) {
 				return console.log('err: ', err);
 			}
-			console.log('results: ' + results);
 		});
 	}, 10000);
+}
+
+function fetchMessages(){
+	client.zrange('messages', 0, -1, function(err, results){
+		results.forEach(function(message){
+			messages.push(JSON.parse(message));
+		});
+		startMessageLoop();
+	});
+}
+
+function startMessageLoop(){
+	var index = 0;
+	intervalMonitor = setInterval(function(){
+		var msgLength = messages.length;
+		if (msgLength === 0){
+			serialPort.emit('send_message', 'No messages...');
+			return clearInterval(intervalMonitor);
+		} else if (msgLength <= index){
+			index = 0;
+			sendMessage(index);
+		} else if (msgLength > index){
+			sendMessage(index);
+		}
+		index = index + 1;
+	}, 5000);
+}
+
+function sendMessage(index){
+	serialPort.emit('send_message', messages[index].message);
+	if (messages[index].expiration > 0){
+		messages[index].expiration = messages[index].expiration - 1;
+		Vent.propagateEvent({
+			srvEvent: 'message:expiration:decrese',
+			data: {
+				event: 'message:expiration:decrese',
+				data : messages[index].id
+			}
+		});
+		msg.delMessage(messages[index].id);
+		if (messages[index].expiration === 0){
+			messages.slice(index);
+		} else {
+			msg.saveMessage(messages[index], function(message){
+				console.log(message);
+			});
+		}
+	}
 }

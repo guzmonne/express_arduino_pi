@@ -568,7 +568,8 @@ App.Views.LCD = Backbone.View.extend({
 	},
 
 	events: {
-		'submit form': 'saveMessage',
+		'keyup textarea': 'updateCharCount',
+		'submit form'     : 'saveMessage',
 	},
 
 	render: function(){
@@ -580,6 +581,17 @@ App.Views.LCD = Backbone.View.extend({
 	afterRender: function(){
 		this.$('#edit').hide();
 		this.$('.info').hide();
+	},
+
+	updateCharCount: function(){
+		var length = this.$('textarea').val().length;
+		if (length <= 32){
+			this.$('span.chars').removeClass('error').text(' ' + length);
+			this.$('textarea').removeClass('error');
+		} else {
+			this.$('span.chars').addClass('error').text(' ' + length);
+			this.$('textarea').addClass('error');
+		}
 	},
 
 	saveMessage: function(e){
@@ -598,6 +610,17 @@ App.Views.LCD = Backbone.View.extend({
 			this.$('textarea').focus();
 			return;
 		}
+		if (this.$('textarea').val().length > 32){
+			this.$('.info').html('<p class="alert">Messages should have less than \
+														32 characters</p>').fadeIn();
+			this.timer = setTimeout(function(){
+				$('.info').fadeOut('slow', function(){
+					$('.info').empty();
+				});
+			}, 5000);
+			this.$('textarea').focus();
+			return;
+		}
 		if (expiration === '' || _.isNumber(parseInt(expiration)) === false){
 			expiration = 0;
 		} else {
@@ -605,6 +628,7 @@ App.Views.LCD = Backbone.View.extend({
 		}
 		this.$('textarea').val('');
 		this.$('#expiration').val('');
+		this.$('span.chars').text(' 0');
 		attr = {
 			timestamp : new Date().getTime(),
 			message   : message,
@@ -648,6 +672,10 @@ App.Views.LCD = Backbone.View.extend({
 App.Views.MessageRow = Backbone.View.extend({
 	tagName: 'tr',
 
+	initialize: function(){
+		this.listenTo(App.vent, 'message:expiration:decrese', this.changeExpiration);
+	},
+
 	events: {
 		'click #edit'  : 'edit',
 		'click #delete': 'delete',
@@ -661,6 +689,14 @@ App.Views.MessageRow = Backbone.View.extend({
 			'<td><a id="delete"><em>delete</em></a></td>'
 		);
 		return this;
+	},
+
+	changeExpiration: function(sse){
+		if (this.model.id === sse.data){
+			var exp = this.model.get('expiration');
+			this.model.set('expiration', exp - 1);
+			this.render();
+		}
 	},
 
 	edit: function(e){
@@ -693,6 +729,65 @@ App.Collections.Messages = Backbone.Collection.extend({
 	model: App.Models.Message,
 });
 
+App.Views.Servo = Backbone.View.extend({
+	template: _.template($('#servo-template').html()),
+
+	events: {
+		'submit form' : function(e){return e.preventDefault();},
+		'change [name=slider]': 'changeSlider'
+	},
+
+	initialize: function(){
+		this.changeSlider = _.throttle(this.changeSlider, 100);
+		this.listenTo(this.model, 'change', this.setSlider);
+	},
+
+	afterUpdate: function(){
+		$('#alert').hide();
+		$('#color').val($('[name=slider]').val());
+	},
+
+	render: function(){
+		this.$el.html(this.template());
+		this.afterUpdate();
+		return this;
+	},
+
+	setSlider: function(){
+		var degrees = this.model.get('degrees');
+		$('[name=slider]').val(degrees);
+		$('#degrees').val(degrees);
+	},
+
+	changeSlider: function(){
+		var degrees = $('[name=slider]').val();
+		this.model.set('degrees', degrees);
+		this.sendChange();
+	},
+
+	sendChange: function(){
+		$.ajax({
+			type: 'POST',
+			url: '/servo',
+			data: this.model.attributes,
+			success: function(){
+				console.log('Success!');
+			},
+			error: function(){
+				console.log('Error!');
+			}
+		});
+	},
+});
+
+App.Models.Servo = Backbone.Model.extend({
+	urlRoot: '/servo',
+
+	initialize: function(){
+		this.fetch();
+	},
+});
+
 App.Routers.MainRouter = Backbone.Router.extend({
 	currentView : null,
 	temperatures: new App.Collections.Temperatures(),
@@ -705,7 +800,8 @@ App.Routers.MainRouter = Backbone.Router.extend({
 		'white_button': 'whiteButton',
 		'temperature' : 'temperature',
 		'humidity'		: 'humidity',
-		'lcd'					: 'lcd'
+		'lcd'					: 'lcd',
+		'servo'				: 'servo'
 	},
 
 	swapView: function(view){
@@ -741,7 +837,11 @@ App.Routers.MainRouter = Backbone.Router.extend({
 	},
 
 	lcd: function(){
-		this.swapView(new App.Views.LCD({collection: new App.Collections.Messages}));
+		this.swapView(new App.Views.LCD({collection: new App.Collections.Messages()}));
+	},
+
+	servo: function(){
+		this.swapView(new App.Views.Servo({model: new App.Models.Servo()}));
 	},
 });
 

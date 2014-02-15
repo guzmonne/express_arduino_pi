@@ -7,19 +7,23 @@ var serialShield = serial.serialShield;
 // =====
 var redis      = require('redis');
 var client     = redis.createClient();
+// Initialize
+// ----------
 client.select(2, function(){
 	console.log('Connected to Redis');
 });
 client.on('error', function(err){
 	console.log('error: ' + err);
 });
+// Messages
+// --------
+msg = require('../libs/messages');
 
 exports.index = function(req, res){
   res.render('index', { title: 'Express Arduino Pi', menu: 'home' });
 };
 
 exports.colorLed = function(req, res){
-	//res.render('colorLed', { title: 'EAPi: Color LED', menu: 'color_led' });
 	client.get('color_led', function(err, color){
 		if (err) {
 			console.log('Redis error: ' + err);
@@ -34,26 +38,6 @@ exports.changeColorLed = function(req, res){
 	res.send(200, {response: 'It worked'});
 };
 
-//exports.temperatures = function(req, res){
-//	if (typeof(req.query.begin) === undefined || req.query.end === undefined){
-//		client.zrange('temperature', 0 , -1, function(err, temperatures){
-//			if (err){
-//				console.log('Redis error: ' + err);
-//			}
-//			res.send(200, temperatures);
-//		});
-//	} else {
-//		var begin = req.query.begin
-//		var end   = req.query.end
-//		client.zrangebyscore('temperature', begin, end, function(err, temperatures){
-//			if (err){
-//				console.log('Redis error: ' + err);
-//			}
-//			res.send(200, temperatures);
-//		});
-//	}
-//};
-
 exports.temperatures = function(req, res){
 	var begin = req.query.begin;
 	var end   = req.query.end;
@@ -66,28 +50,10 @@ exports.humidities = function(req, res){
 	sendZRange(begin, end, 'humidity', res);
 };
 
-//exports.humidities = function(req, res){
-//	if (typeof(req.query.begin) === undefined || req.query.end === undefined){
-//		client.zrange('humidity', 0 , -1, function(err, humidities){
-//			if (err){
-//				console.log('Redis error: ' + err);
-//			}
-//			res.send(200, humidities);
-//		});
-//	} else {
-//		var begin = req.query.begin
-//		var end   = req.query.end
-//		client.zrangebyscore('humidity', begin, end, function(err, humidities){
-//			if (err){
-//				console.log('Redis error: ' + err);
-//			}
-//			res.send(200, humidities);
-//		});
-//	}
-//};
-
 exports.createMessage = function(req, res){
-	createMessage(req, res);
+	msg.createMessage(req, res, function(message){
+		serialPort.emit('new_message', message);
+	});
 };
 
 exports.getMessages = function(req, res){
@@ -98,14 +64,32 @@ exports.getMessages = function(req, res){
 
 exports.editMessage = function(req, res){
 	var id = req.params.id;
-	delMessage(id);
-	createMessage(req, res);
+	msg.delMessage(id);
+	msg.createMessage(req, res, function(message){
+		serialPort.emit('edit_message', message);
+	});
 };
 
 exports.deleteMessage = function(req, res){
 	var id = req.params.id;
-	delMessage(id);
+	msg.delMessage(id);
+	serialPort.emit('delete_message', id);
 	res.send(200, {deletion: 'success'});
+};
+
+exports.getServoValue = function(req, res){
+	client.get('servo_value', function(err, degrees){
+		if (err) {
+			console.log('Redis error: ' + err);
+		}
+		res.send(200, {degrees: degrees});
+	});
+};
+
+exports.servo = function(req, res){
+	var degrees = req.body.degrees;
+	serialShield.emit('servo_move', degrees);
+	res.send(200, {response: 'It worked'});
 };
 
 function sendZRange(begin, end, key, res){
@@ -139,6 +123,7 @@ function createMessage(req, res){
 		}
 		console.log(reply);
 	});
+	serialPort.emit('new_message', attr);
 	res.send(200, message);
 }
 

@@ -1,6 +1,32 @@
 extends layout
 // TEMPLATES
 block scripts
+	script(id="servo-template", type="text/template")
+		section.header
+			h1=title
+			h2 Control a servo
+		section.content
+			h2.content-subhead Information
+			p
+				| In this page we can modify the postition of a servo. We can either set it to a static
+				| postition or we can create a sequence for it to follow. The servo can rotate from 0
+				| to 180 degrees.
+			p
+				| The circuit is very straightforward. It has three connections, one to ground, one to 
+				| Vcc (5V), and the last one to the port 11 of the Arduino Shield board. We then send
+				| the new degree value to the servo using a library provided by Arduino. 
+			h2.content-subhead Servo Form
+			div(class="info message" id="alert")
+			form(class="pure-form pure-form-aligned")
+				fieldset
+					div.pure-control-group
+						label(for="servo") Servo Postition
+						input(id="degrees" type="text" placeholder="Servo Postition" name="degrees" readonly=true)
+					div.pure-control-group
+						label(for="slider")
+						input(type="range" min="0" max="180" name="slider")
+						span.chars  degrees (between 0 and 180)
+
 	script(id="lcd-template", type="text/template")
 		section.header
 			h1= title
@@ -20,10 +46,12 @@ block scripts
 					div.pure-control-group
 						label(for="message") Message
 						textarea(id="message" type="text" placeholder="Message" name="message" rows="4" cols="50")
+						span.chars  0
+						span  of 32 characters
 					div.pure-control-group
 						label(for="expiration") Expiration
 						input(type='number' placeholder='Expiration' id="expiration" name='expiration')
-						span   in minutes
+						span   in times it will be displayed ( 0 = infinite times)
 					div.pure-controls
 						input(type="submit" id="save" class="pure-button pure-button-primary" value="Submit")
 						input(type="submit" id="edit" class="pure-button pure-button-secondary" value="Save Changes")
@@ -271,6 +299,8 @@ block scripts
 					a(href="#humidity") Humidity
 				li
 					a(href="#lcd") LCD Messages
+				li
+					a(href="#servo") Servo
 
 	script(id="color_led-template", type="text/template")
 		section.header

@@ -333,3 +333,15 @@ aside {
     aside.alert {
         background: #EE4444;
     }
+
+span.chars {
+    color: #5C82E7;
+}
+
+span.error {
+    color: #E71C00;
+}
+
+.pure-form textarea.error {
+    border-color: #E71C00; 
+}
