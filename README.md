@@ -4,12 +4,11 @@ Express Arduino Pi
 Project Details
 ---------------
 
-| --- | --- |
-| Author     | Guzmán Monné |
-| Course | Intelligent Embedded Systems | 
-| University 	| University of Helsinki | 
-| Version | 0.0.1 |
-| Year | 2014 |
+Author    : Guzmán Monné
+Course    : Intelligent Embedded Systems 
+University: University of Helsinki 
+Version   : 0.0.1
+Year      : 2014
 
 Introduction
 ------------
